@@ -30,4 +30,12 @@ public class ArticleService {
     public List<Article> getList() {
         return this.articleRepository.findAll();
     }
+
+    public void delete (Article article) {
+        this.articleRepository.delete(article);
+    }
+
+    public void deleteById (Integer id) {
+        this.articleRepository.deleteById(id);
+    }
 }

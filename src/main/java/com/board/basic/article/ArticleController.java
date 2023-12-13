@@ -40,5 +40,24 @@ public class ArticleController {
         return "article_detail";
     }
 
+    @GetMapping("/modify/{id}")
+    public String modify(ArticleForm articleForm, @PathVariable("id") Integer id) {
+        Article article = this.articleService.getArticle(id);
 
+        articleForm.setTitle(article.getTitle());
+        articleForm.setContent(article.getContent());
+
+        return "article_form";
+    }
+
+    @GetMapping("/delete/{id}")
+    public String delete(@PathVariable("id") Integer id) {
+
+        Article article = this.articleService.getArticle(id);
+        this.articleService.delete(article);
+
+//        this.articleService.deleteById(id);
+
+        return "redirect:/article/list";
+    }
 }
