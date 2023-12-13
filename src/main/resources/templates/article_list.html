@@ -1,5 +1,10 @@
 <html layout:decorate="~{layout}">
-    <table layout:fragment="content">
+<div layout:fragment="content">
+    <form th:action="@{/article/list}">
+        검색
+        <input type="text" name="keyword">
+    </form>
+    <table>
         <thead>
             <tr>
                 <th>제목</th>
@@ -14,4 +19,5 @@
         </tbody>
         <a th:href="@{/article/create}">등록</a>
     </table>
+</div>
 </html>

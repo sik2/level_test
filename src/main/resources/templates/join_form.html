@@ -1,0 +1,19 @@
+<html layout:decorate="~{layout}">
+<div layout:fragment="content">
+    <form th:action="@{/user/join}" method="post">
+        아이디(이메일)
+        <input name="email" type="email">
+        <br>
+        닉네임
+        <input name="nickname" type="text">
+        <br>
+        비번
+        <input name="password" type="password">
+        <br>
+        비번 확인
+        <input name="password2" type="password">
+        <br>
+        <button type="submit">가입</button>
+    </form>
+</div>
+</html>

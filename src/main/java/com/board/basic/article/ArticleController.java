@@ -1,12 +1,17 @@
 package com.board.basic.article;
 
+import com.board.basic.user.SiteUser;
+import com.board.basic.user.UserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.stereotype.Service;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
+import java.security.Principal;
 import java.util.List;
+import java.util.Optional;
 
 @Controller
 @RequestMapping("/article")
@@ -14,32 +19,38 @@ import java.util.List;
 public class ArticleController {
 
     private final ArticleService articleService;
+    private final UserService userService;
 
     @GetMapping("/list")
-    public String list(Model model) {
-        List<Article> articleList = this.articleService.getList();
+    public String list(Model model, @RequestParam(value = "keyword", defaultValue = "") String keyword) {
+        List<Article> articleList = this.articleService.getList(keyword);
         model.addAttribute("articleList", articleList);
         return "article_list";
     }
 
+    @PreAuthorize("isAuthenticated()")
     @GetMapping("/create")
     public String create(ArticleForm articleForm) {
         return "article_form";
     }
 
     @PostMapping("/create")
-    public String create(@RequestParam(value = "title") String title, @RequestParam(value = "content") String content) {
-        this.articleService.create(title, content);
+    public String create(@RequestParam(value = "title") String title, @RequestParam(value = "content") String content, Principal principal) {
+        Optional<SiteUser> user = this.userService.findByEmail(principal.getName());
+
+        this.articleService.create(title, content, user.get());
         return "redirect:/article/list";
     }
 
     @GetMapping("/detail/{id}")
-    public String detail(Model model, @PathVariable("id") Integer id) {
+    public String detail(Model model, @PathVariable("id") Integer id, Principal principal) {
         Article article = this.articleService.getArticle(id);
+
         model.addAttribute("article", article);
         return "article_detail";
     }
 
+    @PreAuthorize("isAuthenticated()")
     @GetMapping("/modify/{id}")
     public String modify(ArticleForm articleForm, @PathVariable("id") Integer id) {
         Article article = this.articleService.getArticle(id);
@@ -50,10 +61,28 @@ public class ArticleController {
         return "article_form";
     }
 
-    @GetMapping("/delete/{id}")
-    public String delete(@PathVariable("id") Integer id) {
-
+    @PreAuthorize("isAuthenticated()")
+    @PostMapping("/modify/{id}")
+    public String articleModify(ArticleForm articleForm, @PathVariable("id") Integer id, Principal principal) {
         Article article = this.articleService.getArticle(id);
+        if (!principal.getName().equals(article.getAuthor().getEmail())) {
+            throw new RuntimeException("같은 사람 아님");
+        }
+        this.articleService.modify(article, articleForm.getTitle(), articleForm.getContent());
+
+        return String.format("redirect:/article/detail/%s", id) ;
+    }
+
+
+    @PreAuthorize("isAuthenticated()")
+    @GetMapping("/delete/{id}")
+    public String delete(@PathVariable("id") Integer id, Principal principal) {
+        Article article = this.articleService.getArticle(id);
+
+        if (!principal.getName().equals(article.getAuthor().getEmail())) {
+            throw new RuntimeException("같은 사람 아님");
+        }
+
         this.articleService.delete(article);
 
 //        this.articleService.deleteById(id);
